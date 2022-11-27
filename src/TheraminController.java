@@ -25,23 +25,24 @@ public class TheraminController {
     }
     private Vector leftPalmPosition;
     private Vector rightPalmPosition;
-    private Synthesizer synth;
-    private LineOut lineOut;
+    //private Synthesizer synth;
+    //private LineOut lineOut;
+    TheraminSynth synth;
+    //private SineOscillator sinOsc;
 
-    private SineOscillator sinOsc;
+    //private DualOscillatorSynthVoice dualOsc;
 
-    private DualOscillatorSynthVoice dualOsc;
+    //private DualOscillatorSynthVoice osc1, osc2, osc3, osc4, osc5, osc6;
 
-    private DualOscillatorSynthVoice osc1, osc2, osc3, osc4, osc5, osc6;
+    //private ArrayList<DualOscillatorSynthVoice> oscillators;
+    //private ArrayList<Double> frequencies;
 
-    private ArrayList<DualOscillatorSynthVoice> oscillators;
-    private ArrayList<Double> frequencies;
-
-    private int numHarmonics;
+    //private int numHarmonics;
+    private boolean[] numHarmonics;
     private double amplitude;
     private float frequency;
 
-    private Double freq1, freq2, freq3, freq4, freq5, freq6;
+    //private Double freq1, freq2, freq3, freq4, freq5, freq6;
     private float minY = 0;
     private float maxY = 400;
     private float minFrequency = 15;
@@ -74,8 +75,10 @@ if (entry == null) {
         rightPalmPosition = new Vector();
         amplitude = 0.5;
         frequency = 200;
-        frequencies = new ArrayList<Double>();
-        oscillators = new ArrayList<DualOscillatorSynthVoice>();
+        synth = new TheraminSynth();
+        numHarmonics = new boolean[6];
+        //frequencies = new ArrayList<Double>();
+        //oscillators = new ArrayList<DualOscillatorSynthVoice>();
         /*freq1 = frequency;
         freq2 = frequency;
         freq3 = frequency;
@@ -92,29 +95,36 @@ if (entry == null) {
         minAmplitude = 0;
         frequencySlope = (maxFrequency-minFrequency)/(maxY-minY);
         amplitudeSlope = (maxAmplitude-minAmplitude)/(maxY-minY);
-        oscillators.add(osc1);
-        oscillators.add(osc2);
-        oscillators.add(osc3);
-        oscillators.add(osc4);
-        oscillators.add(osc5);
-        oscillators.add(osc6);
-        synth = JSyn.createSynthesizer();
-        sinOsc = new SineOscillator();
-        dualOsc = new DualOscillatorSynthVoice();
-        synth.add(dualOsc.getUnitGenerator());
-        synth.add(lineOut = new LineOut());
+        //oscillators.add(osc1);
+        //oscillators.add(osc2);
+        //oscillators.add(osc3);
+        //oscillators.add(osc4);
+        //oscillators.add(osc5);
+        //oscillators.add(osc6);
+        //synth = JSyn.createSynthesizer();
+        //sinOsc = new SineOscillator();
+        //dualOsc = new DualOscillatorSynthVoice();
+        //synth.add(dualOsc.getUnitGenerator());
+        //synth.add(lineOut = new LineOut());
         //sinOsc.getOutput().connect(0, lineOut.input, 0);
         //sinOsc.getOutput().connect(0, lineOut.input, 1);
-        dualOsc.getOutput().connect(0, lineOut.input, 0);
-        dualOsc.getOutput().connect(0, lineOut.input, 1);
-        synth.startUnit(lineOut);
+        //dualOsc.getOutput().connect(0, lineOut.input, 0);
+        //dualOsc.getOutput().connect(0, lineOut.input, 1);
+        //synth.startUnit(lineOut);
         populateNotes();
         setPositionToNotes();
         //initializeSynth();
 
     }
-
-    private void initializeSynth(){
+    private void initializeHarmonics(){
+        numHarmonics[0] = true;
+        numHarmonics[1] = false;
+        numHarmonics[2] = false;
+        numHarmonics[3] = false;
+        numHarmonics[4] = false;
+        numHarmonics[5] = false;
+    }
+ /*   private void initializeSynth(){
         synth = JSyn.createSynthesizer();
         synth.add(lineOut= new LineOut());
         for(DualOscillatorSynthVoice osc : oscillators){
@@ -124,7 +134,7 @@ if (entry == null) {
             osc.getOutput().connect(0, lineOut.input, 1);
         }
         synth.startUnit(lineOut);
-    }
+    }*/
 
     private void setPositionToNotes(){
         //map.put(0, 0);    // 0..4     => 0
@@ -151,7 +161,7 @@ if (entry == null) {
         }
     }
 
-    private void getFingerHarmonics(Hand hand) {
+    /*private void getFingerHarmonics(Hand hand) {
         numHarmonics = 0;
         for (Finger finger : hand.fingers()) {
             if (finger.isExtended()) {
@@ -163,6 +173,24 @@ if (entry == null) {
                 double nextHarmonic = frequencies.get(i-1) * 2;
                 frequencies.set(i, nextHarmonic);
             }
+        }
+    }*/
+ //TYPE_THUMB, TYPE_INDEX, TYPE_MIDDLE, TYPE_RING, TYPE_PINKY;
+    private void fingerHarmonics(Finger finger) {
+        if (!finger.isExtended()){
+            if(finger.type() == Finger.Type.TYPE_THUMB) numHarmonics[1] = true;
+            else if(finger.type() == Finger.Type.TYPE_INDEX) numHarmonics[2] = true;
+            else if(finger.type() == Finger.Type.TYPE_MIDDLE) numHarmonics[3] = true;
+            else if(finger.type() == Finger.Type.TYPE_RING) numHarmonics[4] = true;
+            else if(finger.type() == Finger.Type.TYPE_PINKY) numHarmonics[5] = true;
+        }
+        else{
+            if(finger.type() == Finger.Type.TYPE_THUMB) numHarmonics[1] = false;
+            else if(finger.type() == Finger.Type.TYPE_INDEX) numHarmonics[2] = false;
+            else if(finger.type() == Finger.Type.TYPE_MIDDLE) numHarmonics[3] = false;
+            else if(finger.type() == Finger.Type.TYPE_RING) numHarmonics[4] = false;
+            else if(finger.type() == Finger.Type.TYPE_PINKY) numHarmonics[5] = false;
+
         }
     }
 
@@ -176,6 +204,11 @@ if (entry == null) {
         }
         //frequency = mapFrequency(leftPalmPosition.getY());
         frequency = mapPositionToNotes(leftPalmPosition.getY());
+        for(Finger finger : hand.fingers()){
+            fingerHarmonics(finger);
+        }
+
+        synth.setFrequencies(frequency, numHarmonics);
         //frequencies.set(0, (double) mapPositionToNotes(leftPalmPosition.getY()));
         //getFingerHarmonics(hand);
     }
@@ -189,12 +222,13 @@ if (entry == null) {
             rightPalmPosition.setY(maxY);
         }
         amplitude = mapAmplitude(rightPalmPosition.getY());
+        synth.setAmplitude(amplitude);
     }
 
-    private void playFrequencies() {
+    /*private void playFrequencies() {
         double timeNow = synth.getCurrentTime();
         TimeStamp timeStamp = new TimeStamp(timeNow);
-        /*if (numHarmonics == 0) {
+        *//*if (numHarmonics == 0) {
             oscillators.get(0).noteOn(frequencies.get(0), amplitude, timeStamp);
             oscillators.get(1).noteOff(timeStamp);
             oscillators.get(2).noteOff(timeStamp);
@@ -209,17 +243,17 @@ if (entry == null) {
                     oscillators.get(i).noteOff(timeStamp);
                 }
             }
-        }*/
+        }*//*
         oscillators.get(0).noteOn(frequency, amplitude, timeStamp);
-    }
+    }*/
 
-        private void stopNotes(){
+      /*  private void stopNotes(){
         double timeNow = synth.getCurrentTime();
         TimeStamp timeStamp = new TimeStamp(timeNow);
         for(int i = 0; i < numHarmonics; i++){
             oscillators.get(i).noteOff(timeStamp);
         }
-    }
+    }*/
 
      public void processMotion(Frame frame){
         if(frame.hands().count() > 0) {
@@ -230,26 +264,27 @@ if (entry == null) {
                 else{
                     processRightHand(hand);
                 }
+
                 //playFrequencies();
-                double timeNow = synth.getCurrentTime();
-                TimeStamp timeStamp = new TimeStamp(timeNow);
-                dualOsc.noteOn(frequency, amplitude, timeStamp);
+                //double timeNow = synth.getCurrentTime();
+                //TimeStamp timeStamp = new TimeStamp(timeNow);
+                //dualOsc.noteOn(frequency, amplitude, timeStamp);
             }
         }
-        else{
-            double timeNow = synth.getCurrentTime();
-            TimeStamp timeStamp = new TimeStamp(timeNow);
-            dualOsc.noteOff(timeStamp);
+        synth.updateActiveNotes(numHarmonics);
+        /*else{
+            //double timeNow = synth.getCurrentTime();
+            //TimeStamp timeStamp = new TimeStamp(timeNow);
+            //dualOsc.noteOff(timeStamp);
             //stopNotes();
-        }
+        }*/
      }
 
-    public void startSynth(){
-        synth.start();
-        lineOut.start();
+public void startSynth(){
+        synth.startSynth();
     }
     public void stopSynth(){
-        synth.stop();
+        synth.stopSynth();
     }
 
     private float mapFrequency(float currentYPosition){

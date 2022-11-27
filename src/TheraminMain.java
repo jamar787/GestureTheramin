@@ -118,7 +118,7 @@ class TherListener{
     public void run(){
         Timer timer = new Timer();
         TimerTask updateFrame = new FrameTimer();
-        timer.schedule(updateFrame, 300);
+        timer.schedule(updateFrame, 500);
 
     }
 

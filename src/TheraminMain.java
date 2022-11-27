@@ -1,6 +1,9 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.Math;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import com.leapmotion.leap.*;
 
 class TheraminListener extends Listener {
@@ -91,28 +94,62 @@ class TheraminListener extends Listener {
     }
 }
 
+class TherListener{
+    private TheraminController theraminController;
+    private Controller controller;
+    class FrameTimer extends TimerTask{
+
+        @Override
+        public void run() {
+            Frame frame = controller.frame();
+            System.out.println("Frame id: " + frame.id()
+                    + ", timestamp: " + frame.timestamp()
+                    + ", hands: " + frame.hands().count());
+            theraminController.processMotion(frame);
+        }
+    }
+    public TherListener(TheraminController theraminController, Controller controller){
+        this.theraminController = theraminController;
+        this.controller = controller;
+        theraminController.startSynth();
+
+    }
+
+    public void run(){
+        Timer timer = new Timer();
+        TimerTask updateFrame = new FrameTimer();
+        timer.schedule(updateFrame, 300);
+
+    }
+
+    public void addController(Controller controller) {
+        this.controller = controller;
+    }
+    public void addListener(TheraminController theraminController){
+        this.theraminController = theraminController;
+    }
+}
+
+
+
 public class TheraminMain {
+
+
+    Controller controller;
+    TheraminController theraminController;
     public static void main(String[] args) throws FileNotFoundException {
         // Create a sample listener and controller
         TheraminController theraminController = new TheraminController();
-        TheraminListener listener = new TheraminListener();
         Controller controller = new Controller();
-
-        // Have the sample listener receive events from the controller
-        controller.addListener(listener);
-        listener.addListener(theraminController);
-        theraminController.startSynth();
-
-        // Keep this process running until Enter is pressed
-        System.out.println("Press Enter to quit...");
-        try {
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
+        TherListener therListener = new TherListener(theraminController, controller);
+        while(controller.isConnected()) {
+            therListener.run();
         }
+        //theraminController.startSynth();
 
-        // Remove the sample listener when done
-        controller.removeListener(listener);
-        theraminController.stopSynth();
-    }
+        //Timer timer = new Timer();
+        //TimerTask updateFrame = new FrameTimer();
+        //timer.schedule(updateFrame, 200);
+
+}
 }

@@ -30,6 +30,8 @@ public class TheraminController {
 
     private SineOscillator sinOsc;
 
+    private DualOscillatorSynthVoice dualOsc;
+
     private DualOscillatorSynthVoice osc1, osc2, osc3, osc4, osc5, osc6;
 
     private ArrayList<DualOscillatorSynthVoice> oscillators;
@@ -37,7 +39,7 @@ public class TheraminController {
 
     private int numHarmonics;
     private double amplitude;
-    private Double frequency;
+    private float frequency;
 
     private Double freq1, freq2, freq3, freq4, freq5, freq6;
     private float minY = 0;
@@ -71,10 +73,10 @@ if (entry == null) {
         leftPalmPosition = new Vector();
         rightPalmPosition = new Vector();
         amplitude = 0.5;
-        frequency = 200.0;
+        frequency = 200;
         frequencies = new ArrayList<Double>();
         oscillators = new ArrayList<DualOscillatorSynthVoice>();
-        freq1 = frequency;
+        /*freq1 = frequency;
         freq2 = frequency;
         freq3 = frequency;
         freq4 = frequency;
@@ -86,7 +88,7 @@ if (entry == null) {
         frequencies.add(freq4);
         frequencies.add(freq5);
         frequencies.add(freq6);
-
+*/
         minAmplitude = 0;
         frequencySlope = (maxFrequency-minFrequency)/(maxY-minY);
         amplitudeSlope = (maxAmplitude-minAmplitude)/(maxY-minY);
@@ -96,7 +98,7 @@ if (entry == null) {
         oscillators.add(osc4);
         oscillators.add(osc5);
         oscillators.add(osc6);
-        /*synth = JSyn.createSynthesizer();
+        synth = JSyn.createSynthesizer();
         sinOsc = new SineOscillator();
         dualOsc = new DualOscillatorSynthVoice();
         synth.add(dualOsc.getUnitGenerator());
@@ -105,10 +107,10 @@ if (entry == null) {
         //sinOsc.getOutput().connect(0, lineOut.input, 1);
         dualOsc.getOutput().connect(0, lineOut.input, 0);
         dualOsc.getOutput().connect(0, lineOut.input, 1);
-        synth.startUnit(lineOut);*/
+        synth.startUnit(lineOut);
         populateNotes();
         setPositionToNotes();
-        initializeSynth();
+        //initializeSynth();
 
     }
 
@@ -128,12 +130,12 @@ if (entry == null) {
         //map.put(0, 0);    // 0..4     => 0
         //map.put(5, 1);    // 5..10    => 1
         //map.put(11, 2);   // 11..200  => 2
-        Double step = 3.7037;
+        Double step = 3.9037;
         Float lowerYBound = minY;
         Float upperYBound = lowerYBound + step.floatValue();
         for(int i = 0; i < notes.size(); i++){
 
-            //System.out.println(upperYBound);
+            System.out.println(upperYBound);
             positionToNotes.put(upperYBound, i);
             upperYBound += step.floatValue();
         }
@@ -173,7 +175,7 @@ if (entry == null) {
             leftPalmPosition.setY(maxY);
         }
         //frequency = mapFrequency(leftPalmPosition.getY());
-        frequency = (double) mapPositionToNotes(leftPalmPosition.getY());
+        frequency = mapPositionToNotes(leftPalmPosition.getY());
         //frequencies.set(0, (double) mapPositionToNotes(leftPalmPosition.getY()));
         //getFingerHarmonics(hand);
     }
@@ -228,11 +230,17 @@ if (entry == null) {
                 else{
                     processRightHand(hand);
                 }
-                playFrequencies();
+                //playFrequencies();
+                double timeNow = synth.getCurrentTime();
+                TimeStamp timeStamp = new TimeStamp(timeNow);
+                dualOsc.noteOn(frequency, amplitude, timeStamp);
             }
         }
         else{
-            stopNotes();
+            double timeNow = synth.getCurrentTime();
+            TimeStamp timeStamp = new TimeStamp(timeNow);
+            dualOsc.noteOff(timeStamp);
+            //stopNotes();
         }
      }
 
@@ -249,7 +257,16 @@ if (entry == null) {
     }
     private float mapPositionToNotes(float currentYPosition){
        // float lastYBound = 0;
-        float yBound = positionToNotes.ceilingKey(currentYPosition);
+        float yBound;
+        if(currentYPosition < minY){
+            yBound = positionToNotes.floorKey(minY);
+        }
+        else if(currentYPosition > maxY){
+            yBound = positionToNotes.ceilingKey(maxY);
+        }
+        else{
+            yBound = positionToNotes.ceilingKey(currentYPosition);
+        }
         //System.out.println(yBound);
         return notes.get(positionToNotes.get(yBound));
 
